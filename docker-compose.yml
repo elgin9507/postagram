@@ -1,0 +1,31 @@
+services:
+  mysql:
+    image: mysql:9.2
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: postagram
+      MYSQL_USER: postagram
+      MYSQL_PASSWORD: postagram
+    ports:
+      - "3306:3306"
+  postagram:
+    build: .
+    image: postagram
+    command: ["uvicorn", "postagram.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/var/postagram
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - DATABASE_URL=mysql://postagram:postagram@mysql:3306/postagram
+      - SECRET_KEY=local-secret-key
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRATION=3600
+      - REDIS_URL=redis://redis:6379/0
+  redis:
+    image: redis:7.4
+    ports:
+      - "6379:6379"
