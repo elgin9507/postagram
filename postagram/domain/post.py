@@ -13,20 +13,29 @@ from postagram.models.user import User
 
 @cache(expire=settings.POST_CACHE_EXPIRATION, key_builder=post_cache_key_builder)
 async def get_posts_for_user(user: User) -> list[Post]:
+    """Retrieve all posts for a user."""
+
     return user.posts
 
 
-def get_post_by_id(post_id: str, db: Session) -> Post:
+def get_post_by_id(post_id: str, db: Session) -> Post | None:
+    """Retrieve a post by its ID."""
+
     return db.query(Post).filter(Post.id == post_id).first()
 
 
-def get_post_for_user(user: User, post_id: str, db: Session) -> Post:
+def get_post_for_user(user: User, post_id: str, db: Session) -> Post | None:
+    """Retrieve a post for a user by its ID."""
+
     post = get_post_by_id(post_id, db)
+
     if post is not None and post.user_id == user.id:
         return post
 
 
 async def delete_post_for_user(user: User, post: Post, db: Session) -> None:
+    """Delete a post for a user."""
+
     if post.user_id != user.id:
         raise ValueError("User does not own post")
 
@@ -36,6 +45,8 @@ async def delete_post_for_user(user: User, post: Post, db: Session) -> None:
 
 
 async def create_post_for_user(user: User, text: str, db: Session) -> Post:
+    """Create a new post for a user."""
+
     new_post = Post(id=str(uuid.uuid4()), user_id=user.id, text=text)
     db.add(new_post)
     db.commit()
